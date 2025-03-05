@@ -1,0 +1,24 @@
+Optimization Results
+===================
+Budget: 7
+
+Tau: 0.4
+Optimal interventions: [ 29  48  49  61  76 117 155]
+Total impact: 110.60944639624641
+
+Tau: 0.5
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.6
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.7
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: None
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+

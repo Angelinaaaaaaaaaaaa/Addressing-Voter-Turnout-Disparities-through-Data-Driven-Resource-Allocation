@@ -2,23 +2,271 @@ Optimization Results
 ===================
 Budget: 7
 
-Tau: 0.4
-Optimal interventions: [ 29  48  49  61  76 117 155]
-Total impact: 110.60944639624641
+Tau: 0.3
+Optimization failed: Optimization failed.
 
-Tau: 0.5
+Tau: 0.31
+Optimization failed: Optimization failed.
+
+Tau: 0.32
+Optimization failed: Optimization failed.
+
+Tau: 0.33
+Optimization failed: Optimization failed.
+
+Tau: 0.34
+Optimization failed: Optimization failed.
+
+Tau: 0.35000000000000003
+Optimization failed: Optimization failed.
+
+Tau: 0.36000000000000004
+Optimization failed: Optimization failed.
+
+Tau: 0.37000000000000005
+Optimization failed: Optimization failed.
+
+Tau: 0.38000000000000006
+Optimal interventions: [ 29  48  49  61 117 119 155]
+Total impact: 110.5539329205278
+
+Tau: 0.39000000000000007
+Optimal interventions: [ 29  48  49  61 117 122 155]
+Total impact: 110.5781957599831
+
+Tau: 0.4000000000000001
+Optimal interventions: [ 29  48  49  61 117 122 155]
+Total impact: 110.5781957599831
+
+Tau: 0.4100000000000001
+Optimal interventions: [ 48  49  61  76 117 122 155]
+Total impact: 110.61290174698065
+
+Tau: 0.4200000000000001
+Optimal interventions: [ 48  49  61  76 117 122 155]
+Total impact: 110.61290174698065
+
+Tau: 0.4300000000000001
+Optimal interventions: [ 48  49  61 117 122 139 155]
+Total impact: 110.60297492267065
+
+Tau: 0.4400000000000001
+Optimal interventions: [ 29  48  61  76 122 139 155]
+Total impact: 110.93414929885301
+
+Tau: 0.4500000000000001
 Optimal interventions: [ 36  48  61  76 122 139 155]
 Total impact: 110.96131229511982
 
-Tau: 0.6
+Tau: 0.46000000000000013
 Optimal interventions: [ 36  48  61  76 122 139 155]
 Total impact: 110.96131229511982
 
-Tau: 0.7
+Tau: 0.47000000000000014
 Optimal interventions: [ 36  48  61  76 122 139 155]
 Total impact: 110.96131229511982
 
-Tau: None
+Tau: 0.48000000000000015
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.49000000000000016
+Optimal interventions: [ 36  48  61  76  82 122 155]
+Total impact: 110.95686415834582
+
+Tau: 0.5000000000000002
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.5100000000000002
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.5200000000000002
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.5300000000000002
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.5400000000000003
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.5500000000000003
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.5600000000000003
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.5700000000000003
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.5800000000000003
+Optimal interventions: [ 29  48  61  76 122 139 155]
+Total impact: 110.93414929885301
+
+Tau: 0.5900000000000003
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.6000000000000003
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.6100000000000003
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.6200000000000003
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.6300000000000003
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.6400000000000003
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.6500000000000004
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.6600000000000004
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.6700000000000004
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.6800000000000004
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.6900000000000004
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.7000000000000004
+Optimal interventions: [ 29  48  61  76 122 139 155]
+Total impact: 110.93414929885301
+
+Tau: 0.7100000000000004
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.7200000000000004
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.7300000000000004
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.7400000000000004
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.7500000000000004
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.7600000000000005
+Optimal interventions: [ 29  48  61  76 122 139 155]
+Total impact: 110.93414929885301
+
+Tau: 0.7700000000000005
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.7800000000000005
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.7900000000000005
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.8000000000000005
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.8100000000000005
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.8200000000000005
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.8300000000000005
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.8400000000000005
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.8500000000000005
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.8600000000000005
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.8700000000000006
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.8800000000000006
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.8900000000000006
+Optimal interventions: [ 29  48  61  76 122 139 155]
+Total impact: 110.93414929885301
+
+Tau: 0.9000000000000006
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.9100000000000006
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.9200000000000006
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.9300000000000006
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.9400000000000006
+Optimal interventions: [ 29  48  61  76 122 139 155]
+Total impact: 110.93414929885301
+
+Tau: 0.9500000000000006
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.9600000000000006
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.9700000000000006
+Optimal interventions: [ 36  48  61  76 122 139 155]
+Total impact: 110.96131229511982
+
+Tau: 0.9800000000000006
 Optimal interventions: [ 36  48  61  76 122 139 155]
 Total impact: 110.96131229511982
 

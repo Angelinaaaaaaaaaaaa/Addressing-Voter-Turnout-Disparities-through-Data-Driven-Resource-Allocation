@@ -1,215 +1,268 @@
+import os
 import time
 from itertools import product
 
-import os
 import numpy as np
 import pandas as pd
 import gurobipy as gb
 from sklearn.linear_model import LinearRegression
 
+# -----------------------------
+# Setup and Data Loading
+# -----------------------------
+
 # WLS credentials
-WLSACCESSID = 'ccc2c36a-db14-4956-b2e3-60adc45e9957'
-WLSSECRET = '1e0e3dbf-7933-44dc-8f81-e0482ded7ac8'
-LICENSEID = 2586688
+WLS_ACCESS_ID = 'ccc2c36a-db14-4956-b2e3-60adc45e9957'
+WLS_SECRET = '1e0e3dbf-7933-44dc-8f81-e0482ded7ac8'
+LICENSE_ID = 2586688
 
 # Create the Gurobi environment with parameters
-env = gb.Env(empty=True)  # Start with an empty environment
-env.setParam('WLSACCESSID', WLSACCESSID)
-env.setParam('WLSSECRET', WLSSECRET)
-env.setParam('LICENSEID', LICENSEID)
+env = gb.Env(empty=True)
+env.setParam('WLSACCESSID', WLS_ACCESS_ID)
+env.setParam('WLSSECRET', WLS_SECRET)
+env.setParam('LICENSEID', LICENSE_ID)
 env.start()
 
-# Load data
+# Load data and neighborhood matrices
 df = pd.read_csv('GA_features.csv')
-
-# Define constants
-SOCIAL_CATEGORIES = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-BUDGET = 130
-TAU_VALUES =  [0.43, 0.75, None] # Fairness constraints for optimization
-
-# Define columns
-X_columns = ['frac_unem', 'n_poll', 'contribution', 'tweets']
-count_columns = [f'registered_{category}' for category in SOCIAL_CATEGORIES]
-frac_columns = [f'frac_registered_{category}' for category in SOCIAL_CATEGORIES]
-
-# Extract features and targets
-X = df[X_columns]
-A_frac = df[frac_columns]
-y_train = df['frac_votes'].values
-
-# Prepare matrices and values
-CALCULUS = X['frac_unem'].values
-COUNSELORS = X['n_poll'].values
-n_poll = COUNSELORS
-FRPL = np.ones_like(X['contribution'].values)
-contribution = FRPL
-A_MATRIX = A_frac.values
-TOTAL_R = df['total_registers'].values
-R_COUNTS = df[count_columns].values
-R_COUNTS_TOTAL = R_COUNTS.sum(axis=0)
-tweets = X['tweets'].values
-
-# Load neighborhood matrices
 NEIGHBOR_INDEX_MATRIX = np.load('index_matrix.npy')
 NEIGHBOR_DISTANCE_MATRIX = np.load('distance_matrix.npy')
 
-# Dimensions and interventions
+# -----------------------------
+# Constants and Columns
+# -----------------------------
+SOCIAL_CATEGORIES = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+TAU_TIGHTEST = 0.4  # Tightest fairness constraint
+TAU_NONE = None   # No fairness constraint
+
+FEATURE_COLUMNS = ['frac_unem', 'n_poll', 'contribution', 'tweets']
+COUNT_COLUMNS = [f'registered_{cat}' for cat in SOCIAL_CATEGORIES]
+FRAC_COLUMNS = [f'frac_registered_{cat}' for cat in SOCIAL_CATEGORIES]
+
+# -----------------------------
+# Prepare Features and Targets
+# -----------------------------
+X = df[FEATURE_COLUMNS]
+A_frac = df[FRAC_COLUMNS]
+y_train = df['frac_votes'].values
+
+# Feature values
+UNEMPLOYMENT_RATE = X['frac_unem'].values
+POLLING_STATIONS = X['n_poll'].values
+# Use a constant vector for contribution as in the original code
+CONTRIBUTION = np.ones_like(X['contribution'].values)
+TWEETS = X['tweets'].values
+
+# Neighborhood dimensions and intervention space
 NUM_SCHOOLS = X.shape[0]
 NUM_NEIGHBORS = NEIGHBOR_INDEX_MATRIX.shape[1]
-intervention_sample_spaces = [(0, 1)] * NUM_NEIGHBORS
-POSSIBLE_INTERVENTIONS_MATRIX = np.array(list(product(*intervention_sample_spaces)))
+INTERVENTION_SAMPLE_SPACES = [(0, 1)] * NUM_NEIGHBORS
+POSSIBLE_INTERVENTIONS_MATRIX = np.array(list(product(*INTERVENTION_SAMPLE_SPACES)))
 NUM_POSSIBLE_INTERVENTIONS = POSSIBLE_INTERVENTIONS_MATRIX.shape[0]
 
-# Define regression model features
+# -----------------------------
+# Regression Model Setup
+# -----------------------------
 def compute_adjusted_features(feature_values, A_frac, neighbor_distance_matrix):
+    # Compute the maximum influence from neighbors and multiply elementwise with A_frac
     max_neighbor_influence = np.max(neighbor_distance_matrix * feature_values[:, None], axis=1).reshape(NUM_SCHOOLS, 1)
     return A_frac * max_neighbor_influence
 
-a_max_Sij_frac_unem = compute_adjusted_features(CALCULUS, A_frac, NEIGHBOR_DISTANCE_MATRIX)
-a_max_Sij_n_poll = compute_adjusted_features(COUNSELORS, A_frac, NEIGHBOR_DISTANCE_MATRIX)
-a_max_Sij_contribution = compute_adjusted_features(X['contribution'].values, A_frac, NEIGHBOR_DISTANCE_MATRIX)
-a_max_Sij_tweets = compute_adjusted_features(X['tweets'].values, A_frac, NEIGHBOR_DISTANCE_MATRIX)
+# Compute adjusted features for each feature
+adjusted_unemployment = compute_adjusted_features(UNEMPLOYMENT_RATE, A_frac, NEIGHBOR_DISTANCE_MATRIX)
+adjusted_polling = compute_adjusted_features(POLLING_STATIONS, A_frac, NEIGHBOR_DISTANCE_MATRIX)
+adjusted_contribution = compute_adjusted_features(CONTRIBUTION, A_frac, NEIGHBOR_DISTANCE_MATRIX)
+adjusted_tweets = compute_adjusted_features(TWEETS, A_frac, NEIGHBOR_DISTANCE_MATRIX)
 
-# Combine features for regression model
-X_train = np.concatenate((a_max_Sij_frac_unem, a_max_Sij_n_poll, a_max_Sij_contribution, a_max_Sij_tweets, A_frac), axis=1)
-
-# Train regression model
-linmod = LinearRegression(fit_intercept=False).fit(X_train, y_train)
-model_weights = linmod.coef_
+# Combine features and train regression model (no intercept)
+X_train = np.concatenate((adjusted_unemployment, adjusted_polling, adjusted_contribution, adjusted_tweets, A_frac), axis=1)
+linear_model = LinearRegression(fit_intercept=False).fit(X_train, y_train)
+model_weights = linear_model.coef_
 param_dims = len(SOCIAL_CATEGORIES)
 
-# Extract regression weights
+# Split regression weights into groups corresponding to each feature and demographics
 weight_dict = {
     'alpha': model_weights[:param_dims],
-    'beta': model_weights[param_dims:param_dims*2],
-    'gamma': model_weights[param_dims*2:param_dims*3],
-    'delta': model_weights[param_dims*3:param_dims*4],
-    'theta': model_weights[param_dims*4:]
+    'beta': model_weights[param_dims:2*param_dims],
+    'gamma': model_weights[2*param_dims:3*param_dims],
+    'delta': model_weights[3*param_dims:4*param_dims],
+    'theta': model_weights[4*param_dims:]
 }
-
 params = pd.DataFrame(weight_dict, index=SOCIAL_CATEGORIES)
-ALPHA, BETA, GAMMA, DELTA, THETA = (
-    params['alpha'].values,
-    params['beta'].values,
-    params['gamma'].values,
-    params['delta'].values,
-    params['theta'].values
-)
+ALPHA = params['alpha'].values
+BETA = params['beta'].values
+GAMMA = params['gamma'].values
+DELTA = params['delta'].values
+THETA = params['theta'].values
 
-# Helper to calculate expected impact
+# -----------------------------
+# Impact Calculation Functions
+# -----------------------------
 def calculate_expected_impact(index, intervention_array, demographic_vector):
+    """
+    Calculate the expected impact for a single school using the intervention decision.
+    For each term, we multiply the (binary) intervention vector by the neighbor distances,
+    take the maximum value, and weight it by the corresponding regression coefficient.
+    """
+    # Get the indices and distances of the school's neighbors
     nearest_neighbors = NEIGHBOR_INDEX_MATRIX[index, :]
     neighbor_distances = NEIGHBOR_DISTANCE_MATRIX[index, nearest_neighbors]
-
-    frac_unem_term = np.dot(demographic_vector, ALPHA) * np.max(neighbor_distances * intervention_array)
-    n_poll_term = np.dot(demographic_vector, BETA) * np.max(neighbor_distances * COUNSELORS[nearest_neighbors])
-    contribution_term = np.dot(demographic_vector, GAMMA) * np.max(neighbor_distances * X['contribution'].values[nearest_neighbors])
-    tweets_term = np.dot(demographic_vector, DELTA) * np.max(neighbor_distances * X['tweets'].values[nearest_neighbors])
+    
+    unemployment_term = np.dot(demographic_vector, ALPHA) * np.max(neighbor_distances * intervention_array)
+    polling_term = np.dot(demographic_vector, BETA) * np.max(neighbor_distances * POLLING_STATIONS[nearest_neighbors])
+    contribution_term = np.dot(demographic_vector, GAMMA) * np.max(neighbor_distances * CONTRIBUTION[nearest_neighbors])
+    tweets_term = np.dot(demographic_vector, DELTA) * np.max(neighbor_distances * TWEETS[nearest_neighbors])
     demographic_term = np.dot(demographic_vector, THETA)
-
-    impact = frac_unem_term + n_poll_term + contribution_term + tweets_term + demographic_term
+    
+    impact = unemployment_term + polling_term + contribution_term + tweets_term + demographic_term
     return max(min(impact, 1), 0)
 
-# Calculate all possible impacts
 def calculate_all_possible_impacts(index, demographic_vector):
-    possible_impacts = np.empty(len(POSSIBLE_INTERVENTIONS_MATRIX))
+    """
+    Compute the expected impact for all possible neighbor intervention patterns.
+    """
+    possible_impacts = np.empty(NUM_POSSIBLE_INTERVENTIONS)
     for k, intervention_array in enumerate(POSSIBLE_INTERVENTIONS_MATRIX):
         possible_impacts[k] = calculate_expected_impact(index, intervention_array, demographic_vector)
     return possible_impacts
 
-# Optimization routine
-def optimize_interventions(tau_value, A_frac):
-    print(f'Running optimization for tau={tau_value}')
+def calculate_total_impact(intervention_array):
+    """
+    Calculate the total impact over all schools given a binary intervention solution.
+    """
+    total_impact = 0
+    for i in range(NUM_SCHOOLS):
+        demographic_vector = A_frac.values[i, :]
+        total_impact += calculate_expected_impact(i, intervention_array[i], demographic_vector)
+    return total_impact
+
+# -----------------------------
+# Optimization Routine
+# -----------------------------
+def optimize_interventions(tau_value, budget):
+    """
+    Optimize the intervention decisions for all schools under a budget constraint.
+    A fairness constraint (tau) may be imposed. For each school the model selects
+    an intervention pattern (from a discrete set) that yields a factual impact,
+    while the fairness constraints force the differences in impact (for each demographic group)
+    to be within tau.
+    """
+    print(f'Running optimization for tau={tau_value} and budget={budget}')
     model = gb.Model(env=env)
-
+    
+    # Binary variables for each school
     interventions = model.addVars(NUM_SCHOOLS, vtype=gb.GRB.BINARY, name="interventions")
-    model.addConstr(sum(interventions.values()) <= BUDGET, "budget_constraint")
-
+    model.addConstr(sum(interventions[i] for i in range(NUM_SCHOOLS)) <= budget, "budget_constraint")
+    
+    # For each school, create auxiliary variables for each possible intervention pattern
     for index in range(NUM_SCHOOLS):
         demographic_vector = A_frac.values[index, :]
         factual_impacts = calculate_all_possible_impacts(index, demographic_vector)
-
-        auxiliary_vars = model.addVars(len(factual_impacts), obj=factual_impacts, vtype=gb.GRB.CONTINUOUS)
+        auxiliary_vars = model.addVars(len(factual_impacts), obj=factual_impacts, vtype=gb.GRB.CONTINUOUS, name=f"aux_{index}")
         model.update()
-
-        for j, intervention in enumerate(POSSIBLE_INTERVENTIONS_MATRIX):
-            for k, neighbor in enumerate(NEIGHBOR_INDEX_MATRIX[index]):
-                if intervention[k] == 1:
-                    model.addConstr(auxiliary_vars[j] <= interventions[neighbor])
+        
+        # Link the auxiliary variables to the intervention decisions of the neighbors
+        for j, intervention_pattern in enumerate(POSSIBLE_INTERVENTIONS_MATRIX):
+            for k, neighbor in enumerate(NEIGHBOR_INDEX_MATRIX[index, :]):
+                if intervention_pattern[k] == 1:
+                    model.addConstr(auxiliary_vars[j] <= interventions[int(neighbor)])
                 else:
-                    model.addConstr(auxiliary_vars[j] <= 1 - interventions[neighbor])
-
-        model.addConstr(sum(auxiliary_vars.values()) == 1)
-
+                    model.addConstr(auxiliary_vars[j] <= 1 - interventions[int(neighbor)])
+        model.addConstr(sum(auxiliary_vars[j] for j in range(len(factual_impacts))) == 1)
+        
+        # If a fairness constraint is imposed, add constraints on group impact differences
         if tau_value is not None:
             for group_idx in range(A_frac.shape[1]):
-                group_impact_diff = calculate_all_possible_impacts(index, np.eye(A_frac.shape[1])[group_idx]) - factual_impacts
+                group_indicator = np.eye(A_frac.shape[1])[group_idx]
+                group_impact_diff = calculate_all_possible_impacts(index, group_indicator) - factual_impacts
                 model.addConstr(
                     sum(auxiliary_vars[j] * group_impact_diff[j] for j in range(len(factual_impacts))) <= tau_value
                 )
-
+    
     model.setObjective(model.getObjective(), gb.GRB.MAXIMIZE)
     model.optimize()
-
+    
     if model.status == gb.GRB.OPTIMAL:
-        return np.array([interventions[i].X for i in range(NUM_SCHOOLS)]).astype(bool)
+        solution = np.array([interventions[i].X for i in range(NUM_SCHOOLS)]).astype(bool)
+        return solution
     else:
         raise RuntimeError("Optimization failed.")
 
-# newly add
-def expected_impact_i(index, intervention_array):
+# -----------------------------
+# Comparison Routine
+# -----------------------------
+def compare_solutions(budget):
     """
-    Calculate the expected impact for a given index, intervention array, and demographic vector.
+    Run optimization for a given budget using the tight tau and no tau,
+    then compare the solutions and print the corresponding impacts.
     """
-    racial_prop = ['frac_registered_A', 'frac_registered_B', 'frac_registered_C', 'frac_registered_D', 
-                       'frac_registered_E', 'frac_registered_F', 'frac_registered_G']
-    demographic_vector = df.loc[index,  racial_prop]
-    
-    # Get nearest neighbors and distances for the given index
-    neighbor_index_matrix = NEIGHBOR_INDEX_MATRIX
-    neighbor_distance_matrix = NEIGHBOR_DISTANCE_MATRIX
-    nearest_neighbors = neighbor_index_matrix[index, :]
-    neighbor_distances = neighbor_distance_matrix[index, nearest_neighbors]
-    
-    # Compute terms for each feature using the revised features and weights
-    frac_unem_term = np.dot(demographic_vector, ALPHA) * np.max(neighbor_distances * intervention_array)
-    n_poll_term = np.dot(demographic_vector, BETA) * np.max(neighbor_distances * n_poll[nearest_neighbors])
-    contribution_term = np.dot(demographic_vector, GAMMA) * np.max(neighbor_distances * contribution[nearest_neighbors])
-    tweets_term = np.dot(demographic_vector, DELTA) * np.max(neighbor_distances * tweets[nearest_neighbors])
-    demographic_term = np.dot(demographic_vector, THETA)
-
-    # Calculate total impact
-    impact = frac_unem_term + n_poll_term + contribution_term + tweets_term + demographic_term
-    
-    # Clamp impact between 0 and 1
-    return max(min(impact, 1), 0)
-
-def expected_impact(intervention_array):
-        impact = 0
-        for i in range(len(intervention_array)):
-            impact += expected_impact_i(i, intervention_array[i])
-        return impact
-
-SAVE_DIR = "results/"
-if not os.path.exists(SAVE_DIR):
-    os.makedirs(SAVE_DIR)
-
-impact_results = []
-
-# Run optimization 
-for tau_value in TAU_VALUES:
+    print(f"\nComparing solutions for budget = {budget}")
     try:
-        optimal_interventions = optimize_interventions(tau_value, A_frac)
-        impact = expected_impact(optimal_interventions)
-        impact_results.append(impact)
-        print(f"Optimal interventions: {np.where(optimal_interventions)}")
-        print(f"impact: {impact}")
+        tight_solution = optimize_interventions(TAU_TIGHTEST, budget)
+        tight_impact = calculate_total_impact(tight_solution)
+    except Exception as e:
+        print(f"Optimization failed for TAU_TIGHTEST with budget {budget}: {e}")
+        return None, None, None
+    
+    try:
+        no_tau_solution = optimize_interventions(TAU_NONE, budget)
+        no_tau_impact = calculate_total_impact(no_tau_solution)
+    except Exception as e:
+        print(f"Optimization failed for TAU_NONE with budget {budget}: {e}")
+        return None, None, None
+    
+    print(f"Tight constraint (tau={TAU_TIGHTEST}) solution total impact: {tight_impact}")
+    print(f"No tau solution total impact: {no_tau_impact}")
+    different = not np.array_equal(tight_solution, no_tau_solution)
+    if different:
+        print("The solutions are different.")
+    else:
+        print("The solutions are the same.")
+    return tight_solution, no_tau_solution, different
+
+# -----------------------------
+# Main Loop: Run for Tight Tau (0.4) and No Tau
+# -----------------------------
+BUDGET = 120  # Fixed budget for testing
+TAU_VALUES = [0.1, 0.2, 0.3]  # Compare tight tau and no tau
+
+# Store solutions for comparison
+solutions = {}
+
+# Run optimization for each tau value
+for tau_value in TAU_VALUES:
+    print("=" * 80)
+    print(f"Running optimization for tau={tau_value} and budget={BUDGET}")
+    
+    try:
+        # Optimize interventions
+        optimal_interventions = optimize_interventions(tau_value, BUDGET)
+        solutions[tau_value] = optimal_interventions
         
-        # Save results
-        file_name = os.path.join(SAVE_DIR, f"budget{BUDGET}_tau_{tau_value}.npy")
-        np.save(file_name, optimal_interventions)
+        # Print optimal intervention locations
+        print(f"Optimal interventions (tau={tau_value}): {np.where(optimal_interventions)}")
+        
+        # Calculate and print total impact
+        total_impact = calculate_total_impact(optimal_interventions)
+        print(f"Total impact (tau={tau_value}): {total_impact}")
     except RuntimeError as e:
         print(f"Optimization failed for tau={tau_value}: {e}")
 
-
-pd.Series(impact_results).to_csv('results/impact_results.csv', index=False, header=False)
+# Compare solutions
+if 0.4 in solutions and None in solutions:
+    print("\nComparing solutions:")
+    
+    # Get solutions
+    tight_tau_solution = solutions[0.4]
+    no_tau_solution = solutions[None]
+    
+    # Calculate differences
+    differences = np.sum(tight_tau_solution != no_tau_solution)
+    print(f"Differences between tight tau (0.4) and no tau: {differences}")
+    
+    # Save solutions as .npy files
+    np.save('tight_tau_solution.npy', tight_tau_solution)
+    np.save('no_tau_solution.npy', no_tau_solution)
+    print("Solutions saved as 'tight_tau_solution.npy' and 'no_tau_solution.npy'.")
+else:
+    print("Not enough solutions to compare.")

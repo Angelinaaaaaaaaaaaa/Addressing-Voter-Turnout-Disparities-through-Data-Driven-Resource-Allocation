@@ -24,7 +24,7 @@ df = pd.read_csv('GA_features.csv')
 # Define constants
 SOCIAL_CATEGORIES = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
 BUDGET = 130
-TAU_VALUES = [0.43, 0.75, None]  # Fairness constraints for optimization
+TAU_VALUES = [0.45, 0.55, None]  # Fairness constraints for optimization
 
 # Define columns
 X_columns = ['frac_unem', 'n_poll', 'contribution', 'tweets']

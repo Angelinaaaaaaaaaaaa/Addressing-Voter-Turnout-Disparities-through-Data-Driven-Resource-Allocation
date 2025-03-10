@@ -1,7 +1,5 @@
 # **Addressing Voter Turnout Disparities through Data-Driven Resource Allocation**
-**Authors: Cici Xu, Angelina Zhang**
-website: 
-
+**DSC180 Project by Cici and Angelina**
 
 ## **Winter 2025 (WI25)**
 
@@ -20,6 +18,27 @@ This project aims to bridge this gap by leveraging:
 ---
 
 ## **Running the Code**
+### **Implementation**
+To run the optimization model, execute:
+
+```bash
+python WI25/optimize.py
+```
+or
+our_implementation.ipynb
+
+### **Dataset**
+The model runs on the `GA_features` dataset.
+
+### **Output Graphs**
+Results can be visualized using Our_plot.ipynb
+
+---
+
+## **Fall 2024 (FA24) - Replication Study**
+### **Paper 1: Active Learning for Optimal Intervention Design in Causal Models**
+
+This is a replication study of the paper **"Active Learning for Optimal Intervention Design in Causal Models"** (Nature Machine Intelligence, 2023). Specifically, we focused on replicating the experiment on synthetic data.
 
 ### **Installation**
 Follow these steps to set up the environment:
@@ -33,29 +52,6 @@ Follow these steps to set up the environment:
    ```bash
    pip install -e .
    ```
-   
-### **Implementation**
-To run the optimization model, execute:
-
-```bash
-python WI25/new_optimize.py
-```
-or go to
-our_implementation.ipynb
-
-### **Dataset**
-The model runs on the `WI25/GA_features` dataset.
-
-### **Output Graphs**
-Results can be visualized using Our_plot.ipynb
-
----
-
-## **Fall 2024 (FA24) - Replication Study**
-### **Paper 1: Active Learning for Optimal Intervention Design in Causal Models**
-
-This is a replication study of the paper **"Active Learning for Optimal Intervention Design in Causal Models"** (Nature Machine Intelligence, 2023). Specifically, we focused on replicating the experiment on synthetic data.
-
 
 ### **Synthetic Data Experiments**
 To run an experiment on synthetic data:

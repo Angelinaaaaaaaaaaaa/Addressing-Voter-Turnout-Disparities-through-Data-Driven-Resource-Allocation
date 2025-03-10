@@ -223,11 +223,12 @@ def compare_solutions(budget):
 # -----------------------------
 # Main Loop: Run for Tight Tau (0.4) and No Tau
 # -----------------------------
-BUDGET = 120  # Fixed budget for testing
-TAU_VALUES = [0.1, 0.2, 0.3]  # Compare tight tau and no tau
 
-# Store solutions for comparison
-solutions = {}
+# -----------------------------
+# Main Loop: Run for Multiple Tau Values
+# -----------------------------
+BUDGET = 7  # Fixed budget for testing
+TAU_VALUES = [0.38, None]  # Compare tight tau and no tau
 
 # Run optimization for each tau value
 for tau_value in TAU_VALUES:
@@ -247,22 +248,3 @@ for tau_value in TAU_VALUES:
         print(f"Total impact (tau={tau_value}): {total_impact}")
     except RuntimeError as e:
         print(f"Optimization failed for tau={tau_value}: {e}")
-
-# Compare solutions
-if 0.4 in solutions and None in solutions:
-    print("\nComparing solutions:")
-    
-    # Get solutions
-    tight_tau_solution = solutions[0.4]
-    no_tau_solution = solutions[None]
-    
-    # Calculate differences
-    differences = np.sum(tight_tau_solution != no_tau_solution)
-    print(f"Differences between tight tau (0.4) and no tau: {differences}")
-    
-    # Save solutions as .npy files
-    np.save('tight_tau_solution.npy', tight_tau_solution)
-    np.save('no_tau_solution.npy', no_tau_solution)
-    print("Solutions saved as 'tight_tau_solution.npy' and 'no_tau_solution.npy'.")
-else:
-    print("Not enough solutions to compare.")

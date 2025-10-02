@@ -1,6 +1,6 @@
 # **Addressing Voter Turnout Disparities through Data-Driven Resource Allocation**
 **Authors: Cici Xu, Angelina Zhang**
-website: 
+website: https://angelinaaaaaaaaaaaa.github.io/GA_Addressing_Voter_Turnout_Inequalies/
 
 
 ## **Winter 2025 (WI25)**
